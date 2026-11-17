@@ -1,0 +1,6 @@
+{
+  "name": "AutoMetrics DGT · Analítica Oficial de Autoescuelas",
+  "description": "Plataforma de alta fidelidad para el análisis, automatización y visualización de microdatos oficiales de exámenes de la DGT para autoescuelas en España.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
