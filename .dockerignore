@@ -1,0 +1,10 @@
+node_modules
+.dgt-cache
+dist
+.git
+.github
+.env
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

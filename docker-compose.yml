@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: dgt_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dgt_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dgt_secret_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-dgt_stats}
+    volumes:
+      - dgt_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dgt_admin} -d ${POSTGRES_DB:-dgt_stats}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - dgt_network
+
+  dgt-stats:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dgt_stats_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-dgt_admin}:${POSTGRES_PASSWORD:-dgt_secret_pass_2026}@postgres:5432/${POSTGRES_DB:-dgt_stats}
+      - JWT_SECRET=${JWT_SECRET:-dgt_jwt_secret_key_production_2026}
+      - API_SECRET_TOKEN=${API_SECRET_TOKEN:-dgt_cron_sync_token_2026}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - dgt_cache_data:/app/.dgt-cache
+    networks:
+      - dgt_network
+
+volumes:
+  dgt_postgres_data:
+  dgt_cache_data:
+
+networks:
+  dgt_network:
+    driver: bridge

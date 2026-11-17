@@ -1,8 +1,20 @@
 import express from 'express';
 import path from 'node:path';
 import fs from 'node:fs';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 import { createServer as createViteServer } from 'vite';
 import { dgtEngine } from './src/server/dgtExtractor.ts';
+import { initDb, isDbConnected } from './src/server/db.ts';
+import {
+  registerUser,
+  loginUser,
+  authenticateToken,
+  requireAdmin,
+  requireCronOrAdmin,
+  type AuthenticatedRequest,
+} from './src/server/auth.ts';
 import type { TipoPermisoFilter } from './src/types/dgt.ts';
 
 const PORT = Number(process.env.PORT || 3000);
@@ -10,13 +22,90 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 async function startServer() {
   const app = express();
+
+  // 1. Hardening & Seguridad Express
+  app.use(
+    helmet({
+      contentSecurityPolicy: false, // Permitir Vite SPA y assets
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+  app.use(compression());
   app.use(express.json({ limit: '15mb' }));
   app.use(express.text({ limit: '15mb', type: 'text/*' }));
 
-  // Start background initialization of real 2026 DGT microdata
+  // Rate Limiting para proteger contra abusos y DDoS
+  const apiLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 180, // 180 peticiones por minuto por IP
+    message: { error: 'Demasiadas solicitudes desde esta IP, por favor inténtalo más tarde.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 20, // 20 intentos de login por 15 min
+    message: { error: 'Demasiados intentos de autenticación. Por favor espera unos minutos.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.use('/api/', apiLimiter);
+
+  // Inicializar Base de datos PostgreSQL si está disponible
+  await initDb();
+
+  // Background initialization of DGT microdata
   const initPromise = dgtEngine.initialize().catch((err) => {
     console.error('Error en inicialización inicial DGT:', err);
   });
+
+  // Healthcheck endpoint para producción (Cloud Run, Docker, VPS, Dokploy)
+  app.get('/api/health', async (_req, res) => {
+    const dbOk = await isDbConnected();
+    const mem = process.memoryUsage();
+    res.json({
+      status: 'ok',
+      service: 'AutoMetrics DGT',
+      timestamp: new Date().toISOString(),
+      uptimeSeconds: Math.floor(process.uptime()),
+      database: dbOk ? 'PostgreSQL (Conectado)' : 'Caché en memoria/disco',
+      memory: {
+        rssMb: Math.round(mem.rss / 1024 / 1024),
+        heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
+      },
+    });
+  });
+
+  // ---------------- AUTH ROUTES ----------------
+  app.post('/api/auth/register', authLimiter, async (req, res) => {
+    try {
+      const { email, password, name } = req.body || {};
+      const result = await registerUser(email, password, name);
+      res.status(201).json(result);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al registrar usuario';
+      res.status(400).json({ error: msg });
+    }
+  });
+
+  app.post('/api/auth/login', authLimiter, async (req, res) => {
+    try {
+      const { email, password } = req.body || {};
+      const result = await loginUser(email, password);
+      res.json(result);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al iniciar sesión';
+      res.status(401).json({ error: msg });
+    }
+  });
+
+  app.get('/api/auth/me', authenticateToken, (req: AuthenticatedRequest, res) => {
+    res.json({ user: req.user });
+  });
+
+  // ---------------- DGT DATA ROUTES ----------------
 
   // Middleware to ensure engine is initialized before data routes
   app.use('/api/dgt', async (req, res, next) => {
@@ -114,8 +203,8 @@ async function startServer() {
     res.json(dgtEngine.getSyncStatus());
   });
 
-  // 7. Trigger Live Extraction from DGT Portal (www.dgt.es)
-  app.post('/api/dgt/sync', async (req, res) => {
+  // 7. Trigger Live Extraction from DGT Portal (PROTEGIDO: Cron o Admin)
+  app.post('/api/dgt/sync', requireCronOrAdmin, async (req, res) => {
     const scope = req.body?.scope || 'missing_2026';
     const anno = req.body?.anno ? Number(req.body.anno) : undefined;
     const mes = req.body?.mes ? Number(req.body.mes) : undefined;
@@ -129,14 +218,14 @@ async function startServer() {
     res.json({ ...result, status: dgtEngine.getSyncStatus() });
   });
 
-  // 8. Update Monthly Extractor Scheduler Config
-  app.post('/api/dgt/sync/config', (req, res) => {
+  // 8. Update Monthly Extractor Scheduler Config (PROTEGIDO: Solo Admin)
+  app.post('/api/dgt/sync/config', requireAdmin, (req, res) => {
     const updated = dgtEngine.updateConfig(req.body || {});
     res.json(updated);
   });
 
-  // 9. Manual DGT File Upload & Parsing
-  app.post('/api/dgt/upload', (req, res) => {
+  // 9. Manual DGT File Upload & Parsing (PROTEGIDO: Solo Admin)
+  app.post('/api/dgt/upload', requireAdmin, (req, res) => {
     const { content, fileName } = req.body || {};
     if (!content || typeof content !== 'string') {
       return res.status(400).json({ error: 'Contenido CSV/TXT inválido' });
