@@ -1,8 +1,15 @@
 import React from 'react';
-import { Download, RefreshCw, Calendar, Search, Car } from 'lucide-react';
+import { Download, RefreshCw, Calendar, Search, Car, User, LogOut, Shield } from 'lucide-react';
 import { ActiveTab } from './Sidebar';
 import type { TipoPermisoFilter } from '../../types/dgt';
 import { MESES_NOMBRES } from '../../lib/dgtParser';
+
+export interface UserSession {
+  id: string;
+  email: string;
+  name?: string;
+  role: 'admin' | 'pro' | 'user';
+}
 
 interface TopHeaderProps {
   activeTab: ActiveTab;
@@ -19,6 +26,9 @@ interface TopHeaderProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   isSyncing?: boolean;
+  user?: UserSession | null;
+  onOpenAuthModal: () => void;
+  onLogout: () => void;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -36,6 +46,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   searchQuery,
   onSearchChange,
   isSyncing = false,
+  user,
+  onOpenAuthModal,
+  onLogout,
 }) => {
   const getTabLabel = (tab: ActiveTab) => {
     switch (tab) {
@@ -157,6 +170,36 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <Download className="w-3.5 h-3.5" />
           <span>Exportar CSV</span>
         </button>
+
+        {/* Auth / User Control */}
+        {user ? (
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div className="flex items-center gap-1.5 text-xs text-slate-700 bg-slate-50 px-2 py-1 rounded-md border border-slate-200">
+              <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="font-semibold text-slate-900">{user.name || user.email.split('@')[0]}</span>
+              {user.role === 'admin' && (
+                <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                  Admin
+                </span>
+              )}
+            </div>
+            <button
+              onClick={onLogout}
+              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onOpenAuthModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0"
+          >
+            <User className="w-3.5 h-3.5 text-slate-500" />
+            <span>Acceso Admin</span>
+          </button>
+        )}
       </div>
     </header>
   );

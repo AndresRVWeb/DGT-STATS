@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sidebar, ActiveTab } from './components/layout/Sidebar';
-import { TopHeader } from './components/layout/TopHeader';
+import { TopHeader, type UserSession } from './components/layout/TopHeader';
 import { DashboardView } from './components/views/DashboardView';
 import { RankingView } from './components/views/RankingView';
 import { SearchDetailView } from './components/views/SearchDetailView';
 import { RateComparisonView } from './components/views/RateComparisonView';
 import { AutomationView } from './components/views/AutomationView';
+import { AuthModal } from './components/ui/AuthModal';
 import {
   fetchOverview,
   fetchSchoolDetail,
@@ -35,6 +36,36 @@ export default function App() {
   const [selectedSchoolCode, setSelectedSchoolCode] = useState<string>('CA0528');
   const [selectedSchool, setSelectedSchool] = useState<AutoescuelaRecord | null>(null);
   const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
+
+  // Authentication state
+  const [user, setUser] = useState<UserSession | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+
+  // Check stored JWT token on startup
+  useEffect(() => {
+    const token = localStorage.getItem('dgt_token');
+    if (token) {
+      fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.user) {
+            setUser(data.user);
+          } else {
+            localStorage.removeItem('dgt_token');
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('dgt_token');
+        });
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('dgt_token');
+    setUser(null);
+  };
 
   const loadOverview = useCallback(async () => {
     setLoadingOverview(true);
@@ -152,6 +183,9 @@ export default function App() {
           searchQuery={globalSearch}
           onSearchChange={handleGlobalSearchChange}
           isSyncing={isSyncing}
+          user={user}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/70">
@@ -217,6 +251,13 @@ export default function App() {
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Modal de Autenticación / Registro de Administrador */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(loggedUser) => setUser(loggedUser)}
+      />
     </div>
   );
 }
