@@ -1,0 +1,12 @@
+dgt.andresrv.com {
+    reverse_proxy dgt-stats:3000
+
+    # Compresión y cabeceras de optimización
+    encode gzip zstd
+
+    # Logs de acceso
+    log {
+        output stdout
+        format console
+    }
+}

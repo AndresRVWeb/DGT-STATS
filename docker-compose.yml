@@ -25,13 +25,14 @@ services:
     container_name: dgt_stats_app
     restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
       - DATABASE_URL=postgresql://${POSTGRES_USER:-dgt_admin}:${POSTGRES_PASSWORD:-dgt_secret_pass_2026}@postgres:5432/${POSTGRES_DB:-dgt_stats}
       - JWT_SECRET=${JWT_SECRET:-dgt_jwt_secret_key_production_2026}
       - API_SECRET_TOKEN=${API_SECRET_TOKEN:-dgt_cron_sync_token_2026}
+      - APP_URL=https://dgt.andresrv.com
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       postgres:
@@ -41,9 +42,31 @@ services:
     networks:
       - dgt_network
 
+  # Caddy: Proxy inverso ultraligero (~15MB RAM) con HTTPS automático (Let's Encrypt)
+  # Solo actívalo si liberas los puertos 80/443 de Easypanel
+  caddy:
+    image: caddy:2-alpine
+    container_name: dgt_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - dgt-stats
+    networks:
+      - dgt_network
+    profiles:
+      - with-ssl
+
 volumes:
   dgt_postgres_data:
   dgt_cache_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   dgt_network:
