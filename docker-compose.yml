@@ -25,7 +25,7 @@ services:
     container_name: dgt_stats_app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3080:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -41,33 +41,14 @@ services:
       - dgt_cache_data:/app/.dgt-cache
     networks:
       - dgt_network
-
-  # Caddy: Proxy inverso ultraligero (~15MB RAM) con HTTPS automático (Let's Encrypt)
-  # Solo actívalo si liberas los puertos 80/443 de Easypanel
-  caddy:
-    image: caddy:2-alpine
-    container_name: dgt_caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - dgt-stats
-    networks:
-      - dgt_network
-    profiles:
-      - with-ssl
+      - npm_default
 
 volumes:
   dgt_postgres_data:
   dgt_cache_data:
-  caddy_data:
-  caddy_config:
 
 networks:
   dgt_network:
     driver: bridge
+  npm_default:
+    external: true
