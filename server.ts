@@ -67,7 +67,7 @@ async function startServer() {
     const mem = process.memoryUsage();
     res.json({
       status: 'ok',
-      service: 'AutoMetrics DGT',
+      service: 'ARV AutoMetrics',
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.floor(process.uptime()),
       database: dbOk ? 'PostgreSQL (Conectado)' : 'Caché en memoria/disco',
@@ -266,7 +266,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`AutoMetrics DGT Server listening on http://0.0.0.0:${PORT}`);
+    console.log(`ARV AutoMetrics Server listening on http://0.0.0.0:${PORT}`);
   });
 }
 

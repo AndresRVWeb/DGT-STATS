@@ -55,7 +55,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
             <h3 className="font-semibold text-sm">
-              {isLogin ? 'Acceso a AutoMetrics DGT' : 'Crear Cuenta en AutoMetrics DGT'}
+              {isLogin ? 'Acceso a ARV AutoMetrics' : 'Crear Cuenta en ARV AutoMetrics'}
             </h3>
           </div>
           <button

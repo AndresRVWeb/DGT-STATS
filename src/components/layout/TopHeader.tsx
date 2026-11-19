@@ -71,7 +71,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     <header className="h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-xs px-6 flex items-center justify-between gap-4 sticky top-0 z-20">
       {/* Zone 1: Breadcrumb Trail */}
       <div className="flex items-center gap-2 min-w-0 text-xs">
-        <span className="text-slate-500 font-medium whitespace-nowrap">AutoMetrics DGT</span>
+        <span className="font-medium whitespace-nowrap text-slate-700">
+          <span className="font-display font-black text-emerald-600 mr-1">ARV</span>
+          AutoMetrics
+        </span>
         <span className="text-slate-400">/</span>
         <span className="text-slate-900 font-semibold truncate font-display text-sm">
           {getTabLabel(activeTab)}

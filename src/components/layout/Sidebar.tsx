@@ -5,10 +5,10 @@ import {
   Search,
   Scale,
   Cpu,
-  ShieldCheck,
   ChevronRight,
   Building2,
 } from 'lucide-react';
+import { BrandLogo } from '../ui/BrandLogo';
 import type { AutoescuelaRecord } from '../../types/dgt';
 
 export type ActiveTab = 'dashboard' | 'ranking' | 'buscador' | 'comparador' | 'automatizacion';
@@ -67,24 +67,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-72 shrink-0 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between h-screen sticky top-0 select-none z-30">
       {/* Brand & DGT Header */}
       <div className="p-5 border-b border-slate-800/80">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700/60 flex items-center justify-center text-white shrink-0">
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="font-display font-bold text-base text-white tracking-tight leading-none whitespace-nowrap">
-                AutoMetrics
-              </span>
-              <span className="text-[10px] font-mono font-semibold text-emerald-400">
-                DGT
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mt-1 truncate">
-              Observatorio Oficial España
-            </p>
-          </div>
-        </div>
+        <BrandLogo
+          size="md"
+          subtitle="Observatorio Oficial España"
+          theme="dark"
+        />
 
         {/* Clean unboxed metadata */}
         <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">

@@ -1,0 +1,32 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="speed" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="50%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="accent" x1="12" y1="26" x2="36" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Squircle Frame -->
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#bg)" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Minimalist ARV Geometric Monogram -->
+  <!-- Left Ascending Wing (A) -->
+  <path d="M11 37L24 10L28 15L17 37H11Z" fill="url(#speed)" />
+  <!-- Upper Right Sweeping Loop (R) -->
+  <path d="M24 10L33.5 17C36.5 19.5 37 23.5 34.5 27C32.8 29.2 30 30.5 26.5 30.5H21.5L24.5 24H27C28.5 24 29.8 22.8 29.8 21.2C29.8 19.6 28.5 18.5 27 18.5H21L24 10Z" fill="url(#speed)" />
+  <!-- Lower Speed Track (V) -->
+  <path d="M25.5 30.5L35.5 37H29L22.5 30.5H25.5Z" fill="url(#speed)" opacity="0.85" />
+  <!-- Center Precision Metrics Bar -->
+  <rect x="14" y="26.5" width="11" height="3" rx="1.5" fill="url(#accent)" />
+  <!-- Apex Light Indicator -->
+  <circle cx="24" cy="10" r="2" fill="#34D399" />
+</svg>

@@ -2,7 +2,7 @@
 set -e
 
 echo "=================================================="
-echo "🚀 Desplegando AutoMetrics DGT en Docker"
+echo "🚀 Desplegando ARV AutoMetrics en Docker"
 echo "=================================================="
 
 # 1. Asegurar archivo .env
@@ -24,7 +24,7 @@ for i in {1..12}; do
   if curl -sf http://localhost:3000/api/health > /dev/null; then
     echo ""
     echo "=================================================="
-    echo "✅ AutoMetrics DGT está levantado y saludable en el puerto 3000!"
+    echo "✅ ARV AutoMetrics está levantado y saludable en el puerto 3000!"
     echo "=================================================="
     curl -s http://localhost:3000/api/health
     echo ""
