@@ -116,20 +116,22 @@ async function startServer() {
     next();
   });
 
-  // 1. National & Provincial Overview (Year 2026 / 2025, Month, Permit)
+  // 1. National & Provincial Overview (Year 2026 / 2025, Month, Permit, CCAA)
   app.get('/api/dgt/overview', (req, res) => {
     const anno = parseInt(String(req.query.anno || '2026'), 10) || 2026;
     const mes = String(req.query.mes || 'all');
     const permiso = (String(req.query.permiso || 'B') as TipoPermisoFilter) || 'B';
-    const data = dgtEngine.getOverview(anno, mes, permiso);
+    const comunidad = req.query.comunidad ? String(req.query.comunidad) : undefined;
+    const data = dgtEngine.getOverview(anno, mes, permiso, comunidad);
     res.json(data);
   });
 
-  // 2. Paginated, Filtered, Sorted Driving Schools across all 52 Spanish Provinces
+  // 2. Paginated, Filtered, Sorted Driving Schools across all 52 Spanish Provinces & 17 CCAA
   app.get('/api/dgt/schools', (req, res) => {
     const anno = parseInt(String(req.query.anno || '2026'), 10) || 2026;
     const mes = String(req.query.mes || 'all');
     const permiso = (String(req.query.permiso || 'B') as TipoPermisoFilter) || 'B';
+    const comunidadAutonoma = req.query.comunidad ? String(req.query.comunidad) : 'Todas';
     const provincia = req.query.provincia ? String(req.query.provincia) : 'Todas';
     const centroExamen = req.query.centroExamen ? String(req.query.centroExamen) : 'Todos';
     const q = req.query.q ? String(req.query.q) : '';
@@ -143,6 +145,7 @@ async function startServer() {
       anno,
       mes,
       permiso,
+      comunidadAutonoma,
       provincia,
       centroExamen,
       q,
@@ -184,8 +187,9 @@ async function startServer() {
     const anno = parseInt(String(req.query.anno || '2026'), 10) || 2026;
     const mes = String(req.query.mes || 'all');
     const permiso = (String(req.query.permiso || 'B') as TipoPermisoFilter) || 'B';
+    const comunidad = req.query.comunidad ? String(req.query.comunidad) : 'Todas';
     const provincia = req.query.provincia ? String(req.query.provincia) : 'Todas';
-    const csv = dgtEngine.exportCsv({ anno, mes, permiso, provincia });
+    const csv = dgtEngine.exportCsv({ anno, mes, permiso, provincia, comunidadAutonoma: comunidad });
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="DGT_Microdatos_${anno}_${provincia}.csv"`);
     res.send('\uFEFF' + csv);

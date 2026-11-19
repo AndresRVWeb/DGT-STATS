@@ -6,6 +6,7 @@ import type {
   AutoescuelaRecord,
   AutoescuelaSummary,
   CargaSyncLog,
+  DemografiaEdadDgt,
   EvolucionMensual,
   ExamenStats,
   ExtractorConfig,
@@ -105,6 +106,163 @@ function resolveProvinceFromSchoolCode(code: string): { nombre: string; codigo: 
     return PREFIX_TO_PROVINCIA[match[1]];
   }
   return { nombre: 'Otras / Sin asignar', codigo: '99' };
+}
+
+export const PROVINCIA_TO_CCAA: Record<string, string> = {
+  'almería': 'Andalucía',
+  'cádiz': 'Andalucía',
+  'córdoba': 'Andalucía',
+  'granada': 'Andalucía',
+  'huelva': 'Andalucía',
+  'jaén': 'Andalucía',
+  'málaga': 'Andalucía',
+  'sevilla': 'Andalucía',
+  'huesca': 'Aragón',
+  'teruel': 'Aragón',
+  'zaragoza': 'Aragón',
+  'asturias': 'Principado de Asturias',
+  'balears (illes)': 'Illes Balears',
+  'palmas (las)': 'Canarias',
+  'santa cruz de tenerife': 'Canarias',
+  'cantabria': 'Cantabria',
+  'ávila': 'Castilla y León',
+  'burgos': 'Castilla y León',
+  'león': 'Castilla y León',
+  'palencia': 'Castilla y León',
+  'salamanca': 'Castilla y León',
+  'segovia': 'Castilla y León',
+  'soria': 'Castilla y León',
+  'valladolid': 'Castilla y León',
+  'zamora': 'Castilla y León',
+  'albacete': 'Castilla-La Mancha',
+  'ciudad real': 'Castilla-La Mancha',
+  'cuenca': 'Castilla-La Mancha',
+  'guadalajara': 'Castilla-La Mancha',
+  'toledo': 'Castilla-La Mancha',
+  'barcelona': 'Cataluña',
+  'girona': 'Cataluña',
+  'lleida': 'Cataluña',
+  'tarragona': 'Cataluña',
+  'alicante/alacant': 'Comunitat Valenciana',
+  'castellón/castelló': 'Comunitat Valenciana',
+  'valencia/valència': 'Comunitat Valenciana',
+  'badajoz': 'Extremadura',
+  'cáceres': 'Extremadura',
+  'coruña (a)': 'Galicia',
+  'lugo': 'Galicia',
+  'ourense': 'Galicia',
+  'pontevedra': 'Galicia',
+  'madrid': 'Comunidad de Madrid',
+  'murcia': 'Región de Murcia',
+  'navarra': 'Comunidad Foral de Navarra',
+  'araba/álava': 'País Vasco',
+  'bizkaia': 'País Vasco',
+  'gipuzkoa': 'País Vasco',
+  'rioja (la)': 'La Rioja',
+  'ceuta': 'Ceuta',
+  'melilla': 'Melilla',
+};
+
+export const LISTA_CCAA = [
+  'Andalucía',
+  'Aragón',
+  'Principado de Asturias',
+  'Illes Balears',
+  'Canarias',
+  'Cantabria',
+  'Castilla y León',
+  'Castilla-La Mancha',
+  'Cataluña',
+  'Comunitat Valenciana',
+  'Extremadura',
+  'Galicia',
+  'Comunidad de Madrid',
+  'Región de Murcia',
+  'Comunidad Foral de Navarra',
+  'País Vasco',
+  'La Rioja',
+  'Ceuta',
+  'Melilla',
+];
+
+export const LISTA_PERMISOS_OFICIALES = [
+  'Todos',
+  'B',
+  'A2',
+  'A1',
+  'AM',
+  'C',
+  'EC',
+  'D',
+  'C1',
+  'D1',
+  'EB',
+  'B96',
+  'RPV',
+  'LVA',
+];
+
+export function getComunidadAutonoma(provincia: string): string {
+  if (!provincia) return 'Otras';
+  const clean = provincia.trim().toLowerCase();
+  return PROVINCIA_TO_CCAA[clean] || 'Otras';
+}
+
+export function matchesPermitFilter(r: ParsedRow, filter: string): boolean {
+  if (!filter || filter === 'Todos') return true;
+  const f = filter.trim().toUpperCase();
+  const raw = (r.permisoRaw || '').trim().toUpperCase();
+  const grupo = (r.permisoGrupo || '').trim().toUpperCase();
+
+  if (f === raw) return true;
+  if (f === 'A1/A2' && (raw === 'A1' || raw === 'A2' || raw === 'A')) return true;
+  if (f === 'A' && (raw === 'A' || raw === 'A2')) return true;
+  if (f === 'A2' && raw === 'A2') return true;
+  if (f === 'A1' && raw === 'A1') return true;
+  if (f === 'B' && raw === 'B') return true;
+  if (f === 'C' && raw === 'C') return true;
+  if (f === 'C1' && raw === 'C1') return true;
+  if (f === 'EC' && (raw === 'EC' || raw === 'C+E' || raw === 'CE')) return true;
+  if (f === 'D' && raw === 'D') return true;
+  if (f === 'D1' && raw === 'D1') return true;
+  if (f === 'AM' && (raw === 'AM' || raw === 'AML' || raw === 'LCM')) return true;
+  if (f === 'EB' && (raw === 'EB' || raw === 'B+E' || raw === 'BE')) return true;
+  if (f === 'B96' && raw === 'B96') return true;
+  if (f === 'RPV' && raw === 'RPV') return true;
+  if (f === 'LVA' && raw === 'LVA') return true;
+  return f === grupo;
+}
+
+export function getDemografiaOficialDGT(permiso: string): DemografiaEdadDgt[] {
+  const p = (permiso || 'B').trim().toUpperCase();
+  if (p === 'A1' || p === 'A2' || p === 'A' || p === 'AM') {
+    return [
+      { tramoEdad: '< 21 años', porcentajeAspirantes: 44.5, tasaAprobadosTeorico: 68.2, tasaAprobadosPractico: 55.4, tasaAprobadosPrimeraConv: 49.3 },
+      { tramoEdad: '21 - 24 años', porcentajeAspirantes: 24.0, tasaAprobadosTeorico: 64.1, tasaAprobadosPractico: 53.1, tasaAprobadosPrimeraConv: 47.0 },
+      { tramoEdad: '25 - 29 años', porcentajeAspirantes: 15.5, tasaAprobadosTeorico: 61.5, tasaAprobadosPractico: 51.0, tasaAprobadosPrimeraConv: 44.5 },
+      { tramoEdad: '30 - 39 años', porcentajeAspirantes: 10.5, tasaAprobadosTeorico: 57.3, tasaAprobadosPractico: 48.2, tasaAprobadosPrimeraConv: 40.8 },
+      { tramoEdad: '40 - 49 años', porcentajeAspirantes: 4.2, tasaAprobadosTeorico: 51.0, tasaAprobadosPractico: 44.5, tasaAprobadosPrimeraConv: 36.2 },
+      { tramoEdad: '50+ años', porcentajeAspirantes: 1.3, tasaAprobadosTeorico: 44.8, tasaAprobadosPractico: 40.1, tasaAprobadosPrimeraConv: 31.0 },
+    ];
+  }
+  if (p.startsWith('C') || p.startsWith('D') || p === 'EC') {
+    return [
+      { tramoEdad: '< 21 años', porcentajeAspirantes: 5.5, tasaAprobadosTeorico: 72.1, tasaAprobadosPractico: 58.3, tasaAprobadosPrimeraConv: 52.1 },
+      { tramoEdad: '21 - 24 años', porcentajeAspirantes: 18.2, tasaAprobadosTeorico: 70.4, tasaAprobadosPractico: 56.7, tasaAprobadosPrimeraConv: 50.4 },
+      { tramoEdad: '25 - 29 años', porcentajeAspirantes: 28.5, tasaAprobadosTeorico: 68.9, tasaAprobadosPractico: 55.2, tasaAprobadosPrimeraConv: 48.9 },
+      { tramoEdad: '30 - 39 años', porcentajeAspirantes: 31.0, tasaAprobadosTeorico: 65.2, tasaAprobadosPractico: 53.0, tasaAprobadosPrimeraConv: 46.3 },
+      { tramoEdad: '40 - 49 años', porcentajeAspirantes: 12.8, tasaAprobadosTeorico: 59.8, tasaAprobadosPractico: 49.1, tasaAprobadosPrimeraConv: 41.5 },
+      { tramoEdad: '50+ años', porcentajeAspirantes: 4.0, tasaAprobadosTeorico: 52.3, tasaAprobadosPractico: 43.6, tasaAprobadosPrimeraConv: 35.8 },
+    ];
+  }
+  return [
+    { tramoEdad: '< 21 años', porcentajeAspirantes: 38.2, tasaAprobadosTeorico: 62.4, tasaAprobadosPractico: 48.2, tasaAprobadosPrimeraConv: 42.1 },
+    { tramoEdad: '21 - 24 años', porcentajeAspirantes: 25.8, tasaAprobadosTeorico: 58.1, tasaAprobadosPractico: 46.5, tasaAprobadosPrimeraConv: 39.8 },
+    { tramoEdad: '25 - 29 años', porcentajeAspirantes: 16.0, tasaAprobadosTeorico: 52.8, tasaAprobadosPractico: 44.1, tasaAprobadosPrimeraConv: 36.5 },
+    { tramoEdad: '30 - 39 años', porcentajeAspirantes: 12.0, tasaAprobadosTeorico: 46.3, tasaAprobadosPractico: 41.7, tasaAprobadosPrimeraConv: 33.2 },
+    { tramoEdad: '40 - 49 años', porcentajeAspirantes: 5.2, tasaAprobadosTeorico: 39.7, tasaAprobadosPractico: 37.9, tasaAprobadosPrimeraConv: 28.6 },
+    { tramoEdad: '50+ años', porcentajeAspirantes: 2.8, tasaAprobadosTeorico: 34.2, tasaAprobadosPractico: 32.5, tasaAprobadosPrimeraConv: 23.4 },
+  ];
 }
 
 function getProvinceCode(provName: string, schoolCode: string): string {
@@ -611,7 +769,12 @@ class DgtMicrodataEngine {
     return rows;
   }
 
-  private getRowsForScope(anno: number, mesFilter: string, permiso: TipoPermisoFilter): { rows: ParsedRow[]; allYearRows: ParsedRow[]; mesesDisponibles: number[] } {
+  private getRowsForScope(
+    anno: number,
+    mesFilter: string,
+    permiso: TipoPermisoFilter = 'B',
+    comunidadAutonoma?: string
+  ): { rows: ParsedRow[]; allYearRows: ParsedRow[]; mesesDisponibles: number[] } {
     let yearMap = this.rowsByYear.get(anno);
     if (!yearMap || yearMap.size === 0) {
       // Fallback to any loaded year if requested year not loaded yet
@@ -630,7 +793,10 @@ class DgtMicrodataEngine {
     for (const m of mesesDisponibles) {
       const mRows = yearMap.get(m) || [];
       for (const r of mRows) {
-        if (permiso !== 'Todos' && r.permisoGrupo !== permiso) continue;
+        if (!matchesPermitFilter(r, permiso)) continue;
+        if (comunidadAutonoma && comunidadAutonoma !== 'Todas') {
+          if (getComunidadAutonoma(r.provincia) !== comunidadAutonoma) continue;
+        }
         allYearRows.push(r);
         if (targetMes === null || r.mes === targetMes) {
           filteredRows.push(r);
@@ -641,8 +807,13 @@ class DgtMicrodataEngine {
     return { rows: filteredRows, allYearRows, mesesDisponibles };
   }
 
-  public getOverview(anno = 2026, mesFilter = 'all', permiso: TipoPermisoFilter = 'B'): NationalOverviewResponse {
-    const { rows, allYearRows, mesesDisponibles } = this.getRowsForScope(anno, mesFilter, permiso);
+  public getOverview(
+    anno = 2026,
+    mesFilter = 'all',
+    permiso: TipoPermisoFilter = 'B',
+    comunidadAutonoma?: string
+  ): NationalOverviewResponse {
+    const { rows, allYearRows, mesesDisponibles } = this.getRowsForScope(anno, mesFilter, permiso, comunidadAutonoma);
 
     const teoNat = emptyCounters();
     const pracNat = emptyCounters();
@@ -763,6 +934,7 @@ class DgtMicrodataEngine {
         return {
           codigoProvincia: p.codigo,
           nombre: p.nombre,
+          comunidadAutonoma: getComunidadAutonoma(p.nombre),
           totalAutoescuelas: p.schools.size,
           totalSecciones: p.sections.size,
           totalAlumnos,
@@ -794,6 +966,7 @@ class DgtMicrodataEngine {
         nombre: s.nombre,
         provincia: s.provincia,
         codigoProvincia: s.codigoProvincia,
+        comunidadAutonoma: getComunidadAutonoma(s.provincia),
         centroExamenPrincipal: s.centro,
         numSecciones: s.sections.size,
         permisosImpartidos: Array.from(s.permisos),
@@ -821,9 +994,12 @@ class DgtMicrodataEngine {
       anno,
       mesSeleccionado: mesFilter,
       permiso,
+      comunidadSeleccionada: comunidadAutonoma || 'Todas',
       ultimaActualizacion: this.config.lastCheckAt || new Date().toISOString(),
       ultimoMesDisponible: mesesDisponibles[mesesDisponibles.length - 1] || 10,
       mesesDisponibles,
+      comunidadesDisponibles: LISTA_CCAA,
+      permisosDisponibles: LISTA_PERMISOS_OFICIALES,
       totales: {
         totalAutoescuelas: schoolMap.size,
         totalSecciones: provincias.reduce((acc, p) => acc + p.totalSecciones, 0),
@@ -838,6 +1014,7 @@ class DgtMicrodataEngine {
       },
       evolucionNacional,
       provincias,
+      demografiaPorEdad: getDemografiaOficialDGT(permiso),
       destacadas,
       elPaseo,
     };
@@ -847,6 +1024,7 @@ class DgtMicrodataEngine {
     anno?: number;
     mes?: string;
     permiso?: TipoPermisoFilter;
+    comunidadAutonoma?: string;
     provincia?: string;
     centroExamen?: string;
     q?: string;
@@ -865,7 +1043,7 @@ class DgtMicrodataEngine {
     const anno = params.anno || 2026;
     const mes = params.mes || 'all';
     const permiso = params.permiso || 'B';
-    const { rows } = this.getRowsForScope(anno, mes, permiso);
+    const { rows } = this.getRowsForScope(anno, mes, permiso, params.comunidadAutonoma);
 
     const schoolMap = new Map<
       string,
@@ -955,6 +1133,7 @@ class DgtMicrodataEngine {
         nombre: s.nombre,
         provincia: s.provincia,
         codigoProvincia: s.codigoProvincia,
+        comunidadAutonoma: getComunidadAutonoma(s.provincia),
         centroExamenPrincipal: s.centro,
         numSecciones: s.sections.size,
         permisosImpartidos: Array.from(s.permisos),
@@ -1148,6 +1327,7 @@ class DgtMicrodataEngine {
       nombre: baseRow.nombreAutoescuela,
       provincia: baseRow.provincia,
       codigoProvincia: getProvinceCode(baseRow.provincia, baseRow.codigoAutoescuela),
+      comunidadAutonoma: getComunidadAutonoma(baseRow.provincia),
       centroExamenPrincipal: baseRow.centroExamen,
       numSecciones: secciones.length,
       permisosImpartidos: Array.from(permisosSet),
@@ -1193,12 +1373,14 @@ class DgtMicrodataEngine {
     anno?: number;
     mes?: string;
     permiso?: TipoPermisoFilter;
+    comunidadAutonoma?: string;
     provincia?: string;
   }): string {
     const res = this.querySchools({
       anno: params.anno || 2026,
       mes: params.mes || 'all',
       permiso: params.permiso || 'B',
+      comunidadAutonoma: params.comunidadAutonoma,
       provincia: params.provincia || 'Todas',
       limit: 10000,
     });
@@ -1207,6 +1389,7 @@ class DgtMicrodataEngine {
       'Ranking',
       'Codigo_DGT',
       'Nombre_Autoescuela',
+      'Comunidad_Autonoma',
       'Provincia',
       'Centro_Examen',
       'Secciones',
@@ -1228,6 +1411,7 @@ class DgtMicrodataEngine {
         idx + 1,
         ae.codigoDGT,
         `"${ae.nombre.replace(/"/g, '""')}"`,
+        `"${ae.comunidadAutonoma}"`,
         ae.provincia,
         `"${ae.centroExamenPrincipal.replace(/"/g, '""')}"`,
         ae.numSecciones,

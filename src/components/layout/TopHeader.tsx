@@ -106,15 +106,23 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <select
             value={selectedPermiso}
             onChange={(e) => onSelectPermiso(e.target.value as TipoPermisoFilter)}
-            className="bg-transparent border-none focus:outline-hidden text-xs text-slate-800 cursor-pointer"
-            aria-label="Filtrar por permiso"
+            className="bg-transparent border-none focus:outline-hidden text-xs text-slate-800 cursor-pointer font-medium"
+            aria-label="Filtrar por permiso exacto"
           >
-            <option value="B">Permiso B</option>
             <option value="Todos">Todos los permisos</option>
-            <option value="A1/A2">Motos (A1/A2)</option>
-            <option value="C">Camión (C)</option>
-            <option value="D">Autobús (D)</option>
-            <option value="AM">Ciclomotor (AM)</option>
+            <option value="B">Permiso B (Turismos)</option>
+            <option value="A2">Permiso A2 (Motos &le; 35kW)</option>
+            <option value="A1">Permiso A1 (Motos &le; 125cc)</option>
+            <option value="AM">Permiso AM (Ciclomotores)</option>
+            <option value="C">Permiso C (Camión rígido)</option>
+            <option value="EC">Permiso C+E (Tráiler)</option>
+            <option value="C1">Permiso C1 (Camión ligero)</option>
+            <option value="D">Permiso D (Autobús)</option>
+            <option value="D1">Permiso D1 (Microbús)</option>
+            <option value="EB">Permiso B+E (Remolque)</option>
+            <option value="B96">Permiso B96 (Conjunto)</option>
+            <option value="RPV">Recuperación de Puntos</option>
+            <option value="LVA">Licencia Agrícola (LVA)</option>
           </select>
         </div>
 

@@ -3,7 +3,23 @@
  * Dirección General de Tráfico - Estadísticas de Exámenes por Autoescuela y Sección
  */
 
-export type TipoPermisoFilter = 'Todos' | 'B' | 'A1/A2' | 'C' | 'D' | 'AM';
+export type TipoPermisoFilter =
+  | 'Todos'
+  | 'B'
+  | 'A2'
+  | 'A1'
+  | 'AM'
+  | 'C'
+  | 'C1'
+  | 'EC'
+  | 'D'
+  | 'D1'
+  | 'EB'
+  | 'B96'
+  | 'RPV'
+  | 'LVA'
+  | 'A1/A2'
+  | string;
 
 export interface ExamenStats {
   aptos: number;
@@ -47,6 +63,7 @@ export interface AutoescuelaSummary {
   nombre: string;
   provincia: string;
   codigoProvincia: string;
+  comunidadAutonoma: string;
   centroExamenPrincipal: string;
   numSecciones: number;
   permisosImpartidos: string[];
@@ -74,6 +91,7 @@ export interface AutoescuelaRecord extends AutoescuelaSummary {
 export interface ProvinciaStats {
   codigoProvincia: string;
   nombre: string;
+  comunidadAutonoma: string;
   totalAutoescuelas: number;
   totalSecciones: number;
   totalAlumnos: number;
@@ -86,13 +104,24 @@ export interface ProvinciaStats {
   centrosExamen: string[];
 }
 
+export interface DemografiaEdadDgt {
+  tramoEdad: string; // '< 21 años', '21 - 24', '25 - 29', '30 - 39', '40 - 49', '50+'
+  porcentajeAspirantes: number;
+  tasaAprobadosTeorico: number;
+  tasaAprobadosPractico: number;
+  tasaAprobadosPrimeraConv: number;
+}
+
 export interface NationalOverviewResponse {
   anno: number;
   mesSeleccionado: string; // "all" o "1".."12"
   permiso: TipoPermisoFilter;
+  comunidadSeleccionada?: string;
   ultimaActualizacion: string;
   ultimoMesDisponible: number;
   mesesDisponibles: number[];
+  comunidadesDisponibles: string[];
+  permisosDisponibles: string[];
   totales: {
     totalAutoescuelas: number;
     totalSecciones: number;
@@ -107,6 +136,7 @@ export interface NationalOverviewResponse {
   };
   evolucionNacional: EvolucionMensual[];
   provincias: ProvinciaStats[];
+  demografiaPorEdad: DemografiaEdadDgt[];
   destacadas: AutoescuelaSummary[];
   elPaseo: AutoescuelaRecord | null;
 }

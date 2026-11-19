@@ -354,6 +354,55 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
+      {/* Official DGT Age & Demographic Distribution Section */}
+      {overview.demografiaPorEdad && overview.demografiaPorEdad.length > 0 && (
+        <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                <Users className="w-4 h-4 text-emerald-600" />
+                <span>Serie Estadística Oficial DGT</span>
+                <span aria-hidden="true">·</span>
+                <span>Cohortes de Edad en España</span>
+              </div>
+              <h3 className="text-base font-bold font-display text-slate-900 mt-0.5">
+                Rendimiento y Volumen de Aspirantes por Tramos de Edad ({permiso})
+              </h3>
+            </div>
+            <span className="text-xs text-slate-500 font-medium bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200 self-start sm:self-auto">
+              Censo Oficial de Conductores DGT
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
+            {overview.demografiaPorEdad.map((d) => (
+              <div key={d.tramoEdad} className="bg-slate-50/60 p-3.5 rounded-lg border border-slate-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-slate-900">{d.tramoEdad}</span>
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-1.5 py-0.5 rounded">
+                    {d.porcentajeAspirantes}%
+                  </span>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span className="text-[11px]">Teórico:</span>
+                    <span className="font-mono font-bold text-slate-900">{d.tasaAprobadosTeorico}%</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span className="text-[11px]">Práctico:</span>
+                    <span className="font-mono font-bold text-emerald-700">{d.tasaAprobadosPractico}%</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 border-t border-slate-200/60 pt-1">
+                    <span className="text-[11px]">A la 1ª:</span>
+                    <span className="font-mono font-bold text-slate-800">{d.tasaAprobadosPrimeraConv}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* All 52 Spanish Provinces Grid */}
       <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">

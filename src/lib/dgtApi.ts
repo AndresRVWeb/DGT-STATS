@@ -31,12 +31,14 @@ export async function fetchOverview(params: {
   anno?: number;
   mes?: string;
   permiso?: TipoPermisoFilter;
+  comunidad?: string;
 }): Promise<NationalOverviewResponse> {
   const qs = new URLSearchParams({
     anno: String(params.anno ?? 2026),
     mes: params.mes ?? 'all',
     permiso: params.permiso ?? 'B',
   });
+  if (params.comunidad && params.comunidad !== 'Todas') qs.set('comunidad', params.comunidad);
   const res = await fetch(`/api/dgt/overview?${qs.toString()}`);
   if (!res.ok) throw new Error(`Error cargando resumen DGT (${res.status})`);
   return res.json();
@@ -46,6 +48,7 @@ export async function fetchSchools(params: {
   anno?: number;
   mes?: string;
   permiso?: TipoPermisoFilter;
+  comunidad?: string;
   provincia?: string;
   centroExamen?: string;
   q?: string;
@@ -59,6 +62,7 @@ export async function fetchSchools(params: {
   qs.set('anno', String(params.anno ?? 2026));
   qs.set('mes', params.mes ?? 'all');
   qs.set('permiso', params.permiso ?? 'B');
+  if (params.comunidad && params.comunidad !== 'Todas') qs.set('comunidad', params.comunidad);
   if (params.provincia) qs.set('provincia', params.provincia);
   if (params.centroExamen) qs.set('centroExamen', params.centroExamen);
   if (params.q) qs.set('q', params.q);
@@ -169,6 +173,7 @@ export function getExportCsvUrl(params: {
   anno?: number;
   mes?: string;
   permiso?: TipoPermisoFilter;
+  comunidad?: string;
   provincia?: string;
 }): string {
   const qs = new URLSearchParams({
@@ -177,5 +182,6 @@ export function getExportCsvUrl(params: {
     permiso: params.permiso ?? 'B',
     provincia: params.provincia ?? 'Todas',
   });
+  if (params.comunidad && params.comunidad !== 'Todas') qs.set('comunidad', params.comunidad);
   return `/api/dgt/export?${qs.toString()}`;
 }
