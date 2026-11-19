@@ -108,6 +108,15 @@ export async function fetchSyncStatus(refreshCatalog = false): Promise<SyncStatu
   return res.json();
 }
 
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const token = typeof window !== 'undefined' ? localStorage.getItem('dgt_token') : null;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export async function triggerDgtSync(payload: {
   scope: 'latest' | 'year_2026' | 'year_2025' | 'missing_2026' | 'single_month';
   anno?: number;
@@ -115,10 +124,13 @@ export async function triggerDgtSync(payload: {
 }): Promise<{ syncedCount: number; message: string; status: SyncStatusResponse }> {
   const res = await fetch('/api/dgt/sync', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Error ejecutando extractor DGT');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Error ejecutando extractor DGT');
+  }
   return res.json();
 }
 
@@ -127,10 +139,13 @@ export async function updateExtractorConfig(
 ): Promise<ExtractorConfig> {
   const res = await fetch('/api/dgt/sync/config', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('Error actualizando configuración del extractor');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Error actualizando configuración del extractor');
+  }
   return res.json();
 }
 
@@ -140,7 +155,7 @@ export async function uploadDgtFile(
 ): Promise<{ success: boolean; count: number; anno: number; mes: number; status: SyncStatusResponse }> {
   const res = await fetch('/api/dgt/upload', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ content, fileName }),
   });
   if (!res.ok) {

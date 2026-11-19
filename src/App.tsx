@@ -245,6 +245,8 @@ export default function App() {
                     void loadOverview();
                     void loadSchoolDetail(selectedSchoolCode);
                   }}
+                  user={user}
+                  onOpenAuthModal={() => setIsAuthModalOpen(true)}
                 />
               )}
             </motion.div>

@@ -23,9 +23,20 @@ import { generarPlantillaMicrodatosDGT } from '../../lib/dgtParser';
 
 interface AutomationViewProps {
   onDataUpdated: () => void;
+  user?: {
+    id: string;
+    email: string;
+    name?: string;
+    role: 'admin' | 'pro' | 'user';
+  } | null;
+  onOpenAuthModal?: () => void;
 }
 
-export const AutomationView: React.FC<AutomationViewProps> = ({ onDataUpdated }) => {
+export const AutomationView: React.FC<AutomationViewProps> = ({
+  onDataUpdated,
+  user,
+  onOpenAuthModal,
+}) => {
   const [status, setStatus] = useState<SyncStatusResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
@@ -164,6 +175,38 @@ export const AutomationView: React.FC<AutomationViewProps> = ({ onDataUpdated })
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Role / Permission Notice */}
+      {user?.role === 'admin' ? (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-emerald-50/70 border border-emerald-200/90 rounded-xl text-xs text-emerald-950">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>
+              <strong>Modo Administrador Activo:</strong> Tu sesión cuenta con permisos totales para forzar descargas en vivo desde <code>dgt.es</code>, cargar ficheros microdatos y modificar la vigilancia automática.
+            </span>
+          </div>
+          <span className="bg-emerald-600 text-white font-bold px-2.5 py-0.5 rounded text-[10px] uppercase tracking-wider shrink-0 self-start sm:self-auto">
+            Admin Verificado
+          </span>
+        </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-xl text-xs text-amber-950">
+          <div className="flex items-center gap-2.5">
+            <Clock className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>
+              <strong>Modo Consulta (Solo Lectura):</strong> Estás explorando el catálogo y registros de la DGT. Para forzar descargas en el servidor, subir archivos manuales o modificar la frecuencia de escaneo, se requiere rol de Administrador.
+            </span>
+          </div>
+          {onOpenAuthModal && (
+            <button
+              onClick={onOpenAuthModal}
+              className="px-3 py-1 bg-amber-700 hover:bg-amber-800 text-white font-semibold rounded-md transition-colors cursor-pointer shrink-0 whitespace-nowrap self-start sm:self-auto"
+            >
+              Iniciar Sesión como Admin
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Header & Main Extractor Controls */}
       <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-xs space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
